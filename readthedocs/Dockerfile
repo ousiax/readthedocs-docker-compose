@@ -1,4 +1,4 @@
-FROM qqbuby/readthedocs:uwsgi
+FROM qqbuby/readthedocs-uwsgi
 
 MAINTAINER qqbuby <qqbuby@gmail.com>
 
