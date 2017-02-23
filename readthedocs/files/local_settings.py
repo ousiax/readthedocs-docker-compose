@@ -1,46 +1,3 @@
-# ReadTheDocs (RTD) Docker 
-
- Use ***Docker Compose*** to set up and run *uwsgi* and *nginx*.
-
-For more information about *Docker compsoe*, please refer to [Overview of Docker Compose](https://docs.docker.com/compose/overview/).
-
-*docker-compose.yml*
-
-```yml
-version: '3'
-services:
-    readthedocs:
-        container_name: helpcenter-readthedocs
-        build: ./readthedocs
-        command: /usr/local/bin/uwsgi /var/readthedocs/readthedocs.ini
-        volumes:
-            - readthedocs:/var/readthedocs
-        environment:
-            DEBUG: 'True'
-            EMAIL_HOST: 'docs.example.com'
-            EMAIL_PORT: 25
-            EMAIL_HOST_USER: 'no-reply@example.com'
-            EMAIL_HOST_PASSWORD: '123456'
-            DEFAULT_FROM_EMAIL: 'no-reply@example.com'
-
-    nginx:
-        image: nginx
-        container_name: helpcenter-nginx
-        links:
-            - readthedocs:readthedocs
-        ports:
-            - 80:80
-        volumes:
-            - readthedocs:/var/readthedocs:ro
-            - ./nginx/readthedocs.conf:/etc/nginx/conf.d/default.conf
-volumes:
-    readthedocs:
-```
-
-*Read the `files/local_settings.py` about avaliable environment variables.*
-
-```py
-
 import os
 
 
@@ -72,4 +29,3 @@ ES_DEFAULT_NUM_SHARDS = os.environ.get('ES_DEFAULT_NUM_SHARDS', 5)
 ALLOW_ADMIN = eval(os.environ.get('ALLOW_ADMIN', 'False'))
 
 DEBUG = eval(os.environ.get('DEBUG', 'False'))
-```

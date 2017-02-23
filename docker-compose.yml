@@ -1,0 +1,31 @@
+version: '3'
+services:
+    readthedocs:
+        container_name: x-readthedocs
+        build: ./readthedocs
+        command: /usr/local/bin/uwsgi /var/readthedocs/readthedocs.ini
+        volumes:
+            - readthedocs:/var/readthedocs
+        environment:
+            PRODUCTION_DOMAIN: 'docs.example.com'
+            TIME_ZONE: 'Asia/Chongqing'
+            EMAIL_HOST: 'smtp.example.com'
+            EMAIL_PORT: 25
+            EMAIL_HOST_USER: 'user@example.com'
+            EMAIL_HOST_PASSWORD: '123456'
+            DEFAULT_FROM_EMAIL: 'user@example.com'
+            ALLOW_ADMIN: 'True'
+            DEBUG: 'False'
+            
+    nginx:
+        image: nginx
+        container_name: x-nginx
+        links:
+            - readthedocs:readthedocs
+        ports:
+            - 80:80
+        volumes:
+            - readthedocs:/var/readthedocs:ro
+            - ./nginx/readthedocs.conf:/etc/nginx/conf.d/default.conf
+volumes:
+    readthedocs:
