@@ -4,28 +4,61 @@ services:
     readthedocs:
         container_name: x-readthedocs
         build: ./readthedocs
-        command: /usr/local/bin/uwsgi /var/readthedocs/readthedocs.ini
+        command:
+            - /usr/local/bin/uwsgi
+            - /var/readthedocs/readthedocs.ini
+        restart: always
+        links:
+            - elasticsearch:elasticsearch
         volumes:
-            - readthedocs:/var/readthedocs
+            - type: volume
+              source: readthedocs
+              target: /var/readthedocs
         environment:
-            PRODUCTION_DOMAIN: ${PRODUCTION_DOMAIN}
-            TIME_ZONE: ${TIME_ZONE}
-            EMAIL_HOST: ${EMAIL_HOST}
-            EMAIL_PORT: ${EMAIL_PORT}
-            EMAIL_HOST_USER: ${EMAIL_HOST_USER}
-            EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
-            DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
-            ALLOW_ADMIN: ${ALLOW_ADMIN}
-            DEBUG: ${DEBUG}
+            PRODUCTION_DOMAIN: ${RTD_PRODUCTION_DOMAIN}
+            TIME_ZONE: ${RTD_TIME_ZONE}
+            EMAIL_HOST: ${RTD_EMAIL_HOST}
+            EMAIL_PORT: ${RTD_EMAIL_PORT}
+            EMAIL_HOST_USER: ${RTD_EMAIL_HOST_USER}
+            EMAIL_HOST_PASSWORD: ${RTD_EMAIL_HOST_PASSWORD}
+            DEFAULT_FROM_EMAIL: ${RTD_DEFAULT_FROM_EMAIL}
+            ES_HOSTS: ${RTD_ES_HOSTS}
+            ALLOW_ADMIN: ${RTD_ALLOW_ADMIN}
+            DEBUG: ${RTD_DEBUG}
     nginx:
-        image: nginx
+        image: nginx:1.13
         container_name: x-nginx
+        restart: always
         links:
             - readthedocs:readthedocs
         ports:
             - 80:80
+            - 443:443
         volumes:
-            - readthedocs:/var/readthedocs:ro
-            - ./nginx/readthedocs.conf:/etc/nginx/conf.d/default.conf
+            - type: volume
+              source: readthedocs
+              target: /var/readthedocs
+              readonly: true
+            - type: bind
+              source: ./nginx/readthedocs.conf
+              target: /etc/nginx/conf.d/default.conf
+              readonly: true
+            - type: bind
+              source: ./nginx/gridsumdissecrot.com_sha256.cer
+              target: /etc/nginx/gridsumdissecrot.com_sha256.cer
+              readonly: true
+            - type: bind
+              source: ./nginx/gridsumdissecrot.com_sha256.key
+              target: /etc/nginx/gridsumdissecrot.com_sha256.key
+              readonly: true
+
+    elasticsearch:
+        image: qqbuby/elasticsearch:1.7.6-icu
+        restart: always
+        container_name: x-elasticsearch
+        volumes:
+            - elasticsearch:/usr/share/elasticsearch/data
+
 volumes:
     readthedocs:
+    elasticsearch:
